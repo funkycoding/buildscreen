@@ -198,14 +198,13 @@ namespace OrbitOne.BuildScreen.RestApiService
             try
             {
                 var builddefinitions = _helperClass.RetrieveTask<BuildDefinition>(
-                String.Format(_configurationRestService.RetrieveBuildDefinitionsUrl, teamProjectName))
+                string.Format(_configurationRestService.RetrieveBuildDefinitionsUrl, teamProjectName))
                 .Result
                 .Where(b => b.QueueStatus == null || !b.QueueStatus.Equals("disabled")) //it only returns a status when it's disabled (not tested for paused yet)
                 .ToList();
-
-                Parallel.ForEach(builddefinitions, new ParallelOptions { MaxDegreeOfParallelism = DegreeOfParallelism }, bd =>
+                foreach(var builddefs in builddefinitions)
                 {
-                    var dto = GetLatestBuild(teamProjectName, bd.Id, bd.Uri, bd.Name, teamProjectId);
+                    var dto = GetLatestBuild(teamProjectName, builddefs.Id, builddefs.Uri, builddefs.Name, teamProjectId);
                     if (dto != null)
                     {
                         lock (dtoList)
@@ -213,7 +212,11 @@ namespace OrbitOne.BuildScreen.RestApiService
                             dtoList.Add(dto);
                         }
                     }
-                });
+                }
+                //Parallel.ForEach(builddefinitions, new ParallelOptions { MaxDegreeOfParallelism = DegreeOfParallelism }, bd =>
+                //{
+
+                //});
             }
             catch (Exception e)
             {
@@ -230,13 +233,10 @@ namespace OrbitOne.BuildScreen.RestApiService
             BuildInfoDto buildInfoDto = null;
             try
             {
-                var latestBuild =
-                    _helperClass
-                        .RetrieveTask<Build>(
-                        (String.Format(_configurationRestService.RetrieveLastBuildAsyncUrl, teamProjectName, bdId)))
-                        .Result
-                        .FirstOrDefault();
-                if (latestBuild == null) return null;
+                var latestBuild = _helperClass.RetrieveTask<Build>((string.Format(_configurationRestService.RetrieveLastBuildAsyncUrl, teamProjectName, bdId))).Result.FirstOrDefault();
+                if (latestBuild == null || latestBuild.RequestedFor == null)
+                    return null;
+
                 buildInfoDto = new BuildInfoDto
                 {
                     TeamProject = teamProjectName,
@@ -272,8 +272,7 @@ namespace OrbitOne.BuildScreen.RestApiService
                     }
 
                 }
-                if (latestBuild.Result != null &&
-                    latestBuild.Result.Equals(Enum.GetName(typeof(StatusEnum.Statuses), StatusEnum.Statuses.partiallySucceeded)))
+                if (latestBuild.Result != null)
                 {
                     var results = GetTestResults(teamProjectName, latestBuild.Uri);
                     if (results != null)

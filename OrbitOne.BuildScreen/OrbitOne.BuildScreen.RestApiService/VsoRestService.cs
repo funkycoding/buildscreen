@@ -94,10 +94,7 @@ namespace OrbitOne.BuildScreen.RestApiService
                             buildInfoDto.LastBuildTime = lastBuildTime.FinishTime - lastBuildTime.StartTime;
                         }
                     }
-                    if (
-                      build.Result != null &&
-                      build.Result.Equals(Enum.GetName(typeof(StatusEnum.Statuses),
-                            StatusEnum.Statuses.partiallySucceeded)))
+                    if (build.Result != null)
                     {
                         var results = GetTestResults(teamProjectName, build.Uri);
                         if (results != null)
@@ -213,10 +210,6 @@ namespace OrbitOne.BuildScreen.RestApiService
                         }
                     }
                 }
-                //Parallel.ForEach(builddefinitions, new ParallelOptions { MaxDegreeOfParallelism = DegreeOfParallelism }, bd =>
-                //{
-
-                //});
             }
             catch (Exception e)
             {
@@ -294,23 +287,26 @@ namespace OrbitOne.BuildScreen.RestApiService
 
         private IReadOnlyCollection<TestResult> GetTestResults(string teamProjectName, string buildUri)
         {
-            TestResult[] result = { };
+            var results = new List<TestResult>();
             try
             {
-                var runs =
-                _helperClass.RetrieveTask<Test>(String.Format(_configurationRestService.RetrieveRunsAsyncUrl, teamProjectName, buildUri))
-                .Result;
-                if (!runs.Any()) return null;
-                var runResult = runs.Max(t => t.Id);
-                result = _helperClass.RetrieveTask<TestResult>(String.Format(_configurationRestService.RetrieveTestsAsyncUrl,
-                    teamProjectName, runResult)).Result;
+                var runs = _helperClass.RetrieveTask<Test>(String.Format(_configurationRestService.RetrieveRunsAsyncUrl, teamProjectName, buildUri)).Result;
+
+                if (!runs.Any())
+                    return null;
+
+                foreach (var run in runs)
+                {
+                    var testResults = _helperClass.RetrieveTask<TestResult>(String.Format(_configurationRestService.RetrieveTestsAsyncUrl, teamProjectName, run.Id)).Result;
+                    results.AddRange(testResults);
+                }
             }
             catch (Exception e)
             {
                 LogService.WriteError(e);
                 throw;
             }
-            return result;
+            return results;
         }
     }
 }

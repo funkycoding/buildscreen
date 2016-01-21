@@ -3081,3 +3081,9 @@
    at System.Runtime.CompilerServices.ConfiguredTaskAwaitable`1.ConfiguredTaskAwaiter.GetResult()
    at OrbitOne.BuildScreen.RestApiService.VsoHelperClass.<RetrieveTask>d__5`1.MoveNext() in C:\Development\Git\buildscreen\OrbitOne.BuildScreen\OrbitOne.BuildScreen.RestApiService\VsoHelperClass.cs:line 50
 
+20/01/2016 20:13:48 ERROR - Exception An error occurred while sending the request. 
+    at System.Runtime.CompilerServices.TaskAwaiter.ThrowForNonSuccess(Task task)
+   at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task)
+   at System.Runtime.CompilerServices.ConfiguredTaskAwaitable`1.ConfiguredTaskAwaiter.GetResult()
+   at OrbitOne.BuildScreen.RestApiService.VsoHelperClass.<RetrieveTask>d__5`1.MoveNext() in C:\Development\Git\buildscreen\OrbitOne.BuildScreen\OrbitOne.BuildScreen.RestApiService\VsoHelperClass.cs:line 50
+
